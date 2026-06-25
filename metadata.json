@@ -1,0 +1,6 @@
+{
+  "name": "Family Guard",
+  "description": "Family Guard is a secure parent-facing state-synchronization utility. It supports standard client-side data normalization, structured contacts parsing, secure call state sync indicators, and real-time network and phone broadcast telemetry syncing over protected HTTPS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
