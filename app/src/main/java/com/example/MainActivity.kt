@@ -44,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -373,8 +375,13 @@ fun FamilyGuardDashboardScreen(
     val sharedPrefs = remember { context.getSharedPreferences("family_guard_prefs", Context.MODE_PRIVATE) }
     val defaultDeviceName = remember { "child_device" }
     // Remote Sync Configuration States
-    var childDeviceId by remember { mutableStateOf(sharedPrefs.getString("device_id", defaultDeviceName) ?: defaultDeviceName) }
-    var guardianUid by remember { mutableStateOf(sharedPrefs.getString("guardian_uid", "") ?: "") }
+    var childDeviceId by remember { 
+        mutableStateOf(sharedPrefs.getString("device_id", null) ?: run {
+            val newId = "child_" + UUID.randomUUID().toString().substring(0, 8)
+            sharedPrefs.edit().putString("device_id", newId).apply()
+            newId
+        })
+    }
     var encryptionEnabled by remember { mutableStateOf(sharedPrefs.getBoolean("encryption_enabled", false)) }
     var encryptionKey by remember { mutableStateOf(sharedPrefs.getString("encryption_key", "GuardShield123!") ?: "GuardShield123!") }
     var lastSyncResult by remember { mutableStateOf<SyncResult?>(null) }
@@ -400,7 +407,6 @@ fun FamilyGuardDashboardScreen(
         if (!sharedPrefs.contains("server_url")) {
             sharedPrefs.edit()
                 .putString("server_url", "https://family-guard-bf8d7-default-rtdb.firebaseio.com/")
-                .putString("device_id", "child_device")
                 .apply()
         }
         checkPermissions()
@@ -679,8 +685,6 @@ fun FamilyGuardDashboardScreen(
                             },
                             deviceId = childDeviceId,
                             onDeviceIdChange = { childDeviceId = it },
-                            guardianUid = guardianUid,
-                            onGuardianUidChange = { guardianUid = it },
                             isSyncing = isSyncing,
                             onSync = {
                                 isSyncing = true
@@ -688,7 +692,6 @@ fun FamilyGuardDashboardScreen(
                                 // Save settings instantly to SharedPreferences so background worker retrieves correct values
                                 sharedPrefs.edit()
                                     .putString("device_id", childDeviceId)
-                                    .putString("guardian_uid", guardianUid)
                                     .putBoolean("encryption_enabled", encryptionEnabled)
                                     .putString("encryption_key", encryptionKey)
                                     .apply()
@@ -1027,8 +1030,6 @@ fun OverviewScreen(
     onRefresh: () -> Unit,
     deviceId: String,
     onDeviceIdChange: (String) -> Unit,
-    guardianUid: String,
-    onGuardianUidChange: (String) -> Unit,
     isSyncing: Boolean,
     onSync: () -> Unit,
     lastResult: SyncResult?,
@@ -1156,6 +1157,7 @@ fun OverviewScreen(
                 )
                 Spacer(modifier = Modifier.height(14.dp))
                 
+                val clipboardManager = LocalClipboardManager.current
                 OutlinedTextField(
                     value = deviceId,
                     onValueChange = onDeviceIdChange,
@@ -1170,25 +1172,14 @@ fun OverviewScreen(
                         unfocusedBorderColor = Color(0xFFCBD5E1),
                         focusedLabelColor = GuardColors.NeonBlue,
                         unfocusedLabelColor = GuardColors.SlateLight
-                    )
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                OutlinedTextField(
-                    value = guardianUid,
-                    onValueChange = onGuardianUidChange,
-                    label = { Text("Guardian User ID (Optional Security Isolation)") },
-                    placeholder = { Text("Google UID or custom name") },
-                    modifier = Modifier.fillMaxWidth().testTag("sync_guardian_uid_field"),
-                    textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 12.sp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color(0xFF0F172A),
-                        unfocusedTextColor = Color(0xFF1E293B),
-                        focusedBorderColor = GuardColors.NeonBlue,
-                        unfocusedBorderColor = Color(0xFFCBD5E1),
-                        focusedLabelColor = GuardColors.NeonBlue,
-                        unfocusedLabelColor = GuardColors.SlateLight
-                    )
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            clipboardManager.setText(AnnotatedString(deviceId))
+                        }) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 

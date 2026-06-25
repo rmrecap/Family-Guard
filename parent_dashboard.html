@@ -161,25 +161,10 @@
                 </div>
             </div>
 
-            <!-- Guardian Security Link Badge -->
-            <div id="guardian-badge" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-900 animate-fadeIn">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-fingerprint text-emerald-600 text-sm"></i>
-                    <div>
-                        <span class="font-bold text-emerald-950">Guardian User ID (UID):</span> 
-                        <code id="guardian-uid-text" class="bg-emerald-100 px-1 py-0.5 rounded monospace font-bold text-emerald-800">UID_PLACEHOLDER</code>
-                    </div>
-                </div>
-                <button onclick="copyGuardianUid()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded transition-colors flex items-center space-x-1">
-                    <i class="fa-solid fa-copy"></i>
-                    <span id="copy-uid-btn-text">Copy UID</span>
-                </button>
-            </div>
-            
             <div id="setup-help" class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-start space-x-2">
                 <i class="fa-solid fa-shield-halved mt-0.5 text-indigo-600 text-sm"></i>
                 <div>
-                    <span class="font-bold text-indigo-950">Security Rule Notice:</span> We configured secure rules inside `database.rules.json`. For Google Authentication to restrict permissions properly, deploy these rules in your Firebase Console. Copy your **Guardian UID** above and save it inside the target child's Android app Settings!
+                    <span class="font-bold text-indigo-950">Security Rule Notice:</span> We configured secure rules inside `database.rules.json`. For Google Authentication to restrict permissions properly, deploy these rules in your Firebase Console.
                 </div>
             </div>
         </section>
@@ -822,7 +807,6 @@
         function updateAuthUI() {
             const overlay = document.getElementById("login-overlay");
             const profileWidget = document.getElementById("profile-widget");
-            const guardianBadge = document.getElementById("guardian-badge");
             
             const isLegacy = localStorage.getItem("fg_legacy_mode") === "true";
             
@@ -841,8 +825,6 @@
                         </button>
                     </div>
                 `;
-                guardianBadge.classList.remove("hidden");
-                document.getElementById("guardian-uid-text").textContent = currentUser.uid;
             } else if (isLegacy) {
                 overlay.classList.add("hidden");
                 profileWidget.classList.remove("hidden");
@@ -855,22 +837,13 @@
                         </button>
                     </div>
                 `;
-                guardianBadge.classList.add("hidden");
             } else {
                 overlay.classList.remove("hidden");
                 profileWidget.classList.add("hidden");
-                guardianBadge.classList.add("hidden");
             }
         }
 
-        function copyGuardianUid() {
-            const uidText = document.getElementById("guardian-uid-text").textContent;
-            navigator.clipboard.writeText(uidText).then(() => {
-                const btn = document.getElementById("copy-uid-btn-text");
-                btn.textContent = "Copied! ✓";
-                setTimeout(() => btn.textContent = "Copy UID", 2000);
-            });
-        }
+
 
         // Get DB prefix path based on user login
         function getDatabasePathPrefix() {
