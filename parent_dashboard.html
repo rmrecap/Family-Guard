@@ -86,131 +86,142 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         <!-- Connection Configuration Box -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <details class="bg-white rounded-2xl shadow-sm border border-slate-200 group" open>
+            <summary class="flex items-center justify-between p-4 sm:p-6 cursor-pointer list-none focus:outline-none">
                 <div class="space-y-1">
-                    <h2 class="text-base font-bold text-slate-900 flex items-center">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center">
                         <i class="fa-solid fa-database text-blue-600 mr-2"></i>
-                        Firebase Database Sync Target
+                        Firebase Database Target
                     </h2>
-                    <p class="text-xs text-slate-500">Configure your child's database sync node. Ensure it matches the settings configured in the mobile app.</p>
+                    <p class="text-[10px] sm:text-xs text-slate-500">Tap to configure your child's database sync node.</p>
                 </div>
-            </div>
+                <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center flex-shrink-0 group-open:rotate-180 transition-transform">
+                    <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                </div>
+            </summary>
             
-            <!-- Config Inputs Row -->
-            <div class="mt-4 flex flex-col xl:flex-row items-end gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <!-- Database URL input -->
-                <div class="flex-grow w-full min-w-0">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Firebase Database URL</label>
-                    <input type="text" id="db-url" 
-                           placeholder="https://your-firebase-rtdb.firebaseio.com/" 
-                           class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
-                           value="" onchange="fetchDevicesList()">
+            <div class="px-4 pb-4 sm:px-6 sm:pb-6 border-t border-slate-100 pt-4">
+                <!-- Config Inputs Row -->
+                <div class="flex flex-col xl:flex-row items-stretch xl:items-end gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
+                    <!-- Database URL input -->
+                    <div class="flex-grow w-full min-w-0">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Firebase Database URL</label>
+                        <input type="text" id="db-url" 
+                               placeholder="https://your-firebase-rtdb.firebaseio.com/" 
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               value="" onchange="fetchDevicesList()">
+                    </div>
+                    <!-- API Key input (needed for local development) -->
+                    <div class="w-full xl:w-44 min-w-0">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
+                            <span>Web API Key</span>
+                            <i class="fa-solid fa-circle-info text-slate-400 cursor-help" title="Only required if running locally. Web app automatically loads it when hosted on Firebase."></i>
+                        </label>
+                        <input type="password" id="api-key" 
+                               placeholder="API Key (Optional)" 
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               value="" onchange="localStorage.setItem('fg_api_key', this.value)">
+                    </div>
+                    <!-- Device Selector Dropdown -->
+                    <div class="w-full xl:w-48 min-w-0">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Detected Device</label>
+                        <select id="device-selector" onchange="onDeviceSelect()"
+                                class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white font-semibold">
+                            <option value="child_device">child_device</option>
+                        </select>
+                    </div>
+                    <!-- Manual Device ID Input -->
+                    <div class="w-full xl:w-36 min-w-0">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Manual Device ID</label>
+                        <input type="text" id="device-id" 
+                               placeholder="child_device" 
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               value="child_device" oninput="syncSelectorWithInput()">
+                    </div>
+                    <!-- Decryption Key input -->
+                    <div class="w-full xl:w-40 min-w-0">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Decryption Key (XOR)</label>
+                        <input type="text" id="decryption-key" 
+                               placeholder="Decryption Key" 
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               value="GuardShield123!"
+                               oninput="if(window.rawFetchedData && Object.keys(window.rawFetchedData).length > 0) { renderDashboard(window.rawFetchedData); }"
+                               title="Decrypts logs if payload encryption is active">
+                    </div>
+                    <!-- Control buttons -->
+                    <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
+                        <button onclick="connectAndFetch(); if(window.innerWidth < 768) { document.querySelector('details.group').removeAttribute('open'); }" 
+                                class="flex-1 xl:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[34px]">
+                            <i class="fa-solid fa-rotate text-[11px]"></i>
+                            <span>Fetch</span>
+                        </button>
+                        <button onclick="shareDashboardLink()" 
+                                class="flex-1 xl:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[34px]"
+                                title="Copy config share link for other guardians">
+                            <i class="fa-solid fa-share-nodes text-[11px]"></i>
+                            <span id="share-btn-text">Share Link</span>
+                        </button>
+                    </div>
                 </div>
-                <!-- API Key input (needed for local development) -->
-                <div class="w-full xl:w-44">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 flex items-center justify-between">
-                        <span>Web API Key (Local Auth)</span>
-                        <i class="fa-solid fa-circle-info text-slate-400 cursor-help" title="Only required if running locally. Web app automatically loads it when hosted on Firebase."></i>
-                    </label>
-                    <input type="password" id="api-key" 
-                           placeholder="API Key (Optional)" 
-                           class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
-                           value="" onchange="localStorage.setItem('fg_api_key', this.value)">
-                </div>
-                <!-- Device Selector Dropdown -->
-                <div class="w-full xl:w-48">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Detected Device</label>
-                    <select id="device-selector" onchange="onDeviceSelect()"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white font-semibold">
-                        <option value="child_device">child_device</option>
-                    </select>
-                </div>
-                <!-- Manual Device ID Input -->
-                <div class="w-full xl:w-36">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Manual Device ID</label>
-                    <input type="text" id="device-id" 
-                           placeholder="child_device" 
-                           class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
-                           value="child_device" oninput="syncSelectorWithInput()">
-                </div>
-                <!-- Decryption Key input -->
-                <div class="w-full xl:w-40">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Decryption Key (XOR)</label>
-                    <input type="text" id="decryption-key" 
-                           placeholder="Decryption Key" 
-                           class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
-                           value="GuardShield123!"
-                           oninput="if(window.rawFetchedData && Object.keys(window.rawFetchedData).length > 0) { renderDashboard(window.rawFetchedData); }"
-                           title="Decrypts logs if payload encryption is active">
-                </div>
-                <!-- Control buttons -->
-                <div class="flex gap-2 w-full xl:w-auto">
-                    <button onclick="connectAndFetch()" 
-                            class="flex-1 xl:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 h-[34px]">
-                        <i class="fa-solid fa-rotate text-[11px]"></i>
-                        <span>Fetch</span>
-                    </button>
-                    <button onclick="shareDashboardLink()" 
-                            class="flex-1 xl:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 h-[34px]"
-                            title="Copy config share link for other guardians">
-                        <i class="fa-solid fa-share-nodes text-[11px]"></i>
-                        <span id="share-btn-text">Share Link</span>
-                    </button>
-                </div>
-            </div>
 
-            <div id="setup-help" class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-start space-x-2">
-                <i class="fa-solid fa-shield-halved mt-0.5 text-indigo-600 text-sm"></i>
-                <div>
-                    <span class="font-bold text-indigo-950">Security Rule Notice:</span> We configured secure rules inside `database.rules.json`. For Google Authentication to restrict permissions properly, deploy these rules in your Firebase Console.
+                <div id="setup-help" class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-start space-x-2">
+                    <i class="fa-solid fa-shield-halved mt-0.5 text-indigo-600 text-sm flex-shrink-0"></i>
+                    <div>
+                        <span class="font-bold text-indigo-950">Security Rule Notice:</span> We configured secure rules inside `database.rules.json`. For Google Authentication to restrict permissions properly, deploy these rules in your Firebase Console.
+                    </div>
                 </div>
             </div>
-        </section>
+            <script>
+                if (window.innerWidth < 768) {
+                    document.querySelector('details.group').removeAttribute('open');
+                }
+            </script>
+        </details>
 
         <!-- Dynamic Device Summary Widget -->
-        <section class="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <!-- Dynamic Device Summary Widget -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
             <!-- SMS Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <i class="fa-solid fa-message text-xl"></i>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-message text-lg sm:text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Monitored SMS</p>
-                    <h3 id="sms-count" class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+                    <p class="text-[9px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider leading-tight">SMS</p>
+                    <h3 id="sms-count" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">0</h3>
                 </div>
             </div>
 
             <!-- Call Logs Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                    <i class="fa-solid fa-phone text-xl"></i>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-phone text-lg sm:text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Call Logs</p>
-                    <h3 id="calls-count" class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+                    <p class="text-[9px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider leading-tight">Calls</p>
+                    <h3 id="calls-count" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">0</h3>
                 </div>
             </div>
 
             <!-- Contacts Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <i class="fa-solid fa-address-book text-xl"></i>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-address-book text-lg sm:text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Device Contacts</p>
-                    <h3 id="contacts-count" class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+                    <p class="text-[9px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider leading-tight">Contacts</p>
+                    <h3 id="contacts-count" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">0</h3>
                 </div>
             </div>
 
             <!-- Device Status Card -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center" id="battery-status-icon">
-                    <i class="fa-solid fa-battery-three-quarters text-xl"></i>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center flex-shrink-0" id="battery-status-icon">
+                    <i class="fa-solid fa-battery-three-quarters text-lg sm:text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Battery & Status</p>
-                    <h3 id="battery-level" class="text-2xl font-bold text-slate-900 mt-0.5">-- %</h3>
+                    <p class="text-[9px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider leading-tight">Battery</p>
+                    <h3 id="battery-level" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">-- %</h3>
                 </div>
             </div>
         </section>
