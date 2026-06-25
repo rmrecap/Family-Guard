@@ -108,7 +108,7 @@
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Firebase Database URL</label>
                         <input type="text" id="db-url" 
                                placeholder="https://your-firebase-rtdb.firebaseio.com/" 
-                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
                                value="" onchange="fetchDevicesList()">
                     </div>
                     <!-- API Key input (needed for local development) -->
@@ -119,14 +119,14 @@
                         </label>
                         <input type="password" id="api-key" 
                                placeholder="API Key (Optional)" 
-                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
                                value="" onchange="localStorage.setItem('fg_api_key', this.value)">
                     </div>
                     <!-- Device Selector Dropdown -->
                     <div class="w-full xl:w-48 min-w-0">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Detected Device</label>
                         <select id="device-selector" onchange="onDeviceSelect()"
-                                class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white font-semibold">
+                                class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white font-semibold">
                             <option value="child_device">child_device</option>
                         </select>
                     </div>
@@ -135,7 +135,7 @@
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Manual Device ID</label>
                         <input type="text" id="device-id" 
                                placeholder="child_device" 
-                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
                                value="child_device" oninput="syncSelectorWithInput()">
                     </div>
                     <!-- Decryption Key input -->
@@ -143,7 +143,7 @@
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Decryption Key (XOR)</label>
                         <input type="text" id="decryption-key" 
                                placeholder="Decryption Key" 
-                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
+                               class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white"
                                value="GuardShield123!"
                                oninput="if(window.rawFetchedData && Object.keys(window.rawFetchedData).length > 0) { renderDashboard(window.rawFetchedData); }"
                                title="Decrypts logs if payload encryption is active">
@@ -151,12 +151,12 @@
                     <!-- Control buttons -->
                     <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
                         <button onclick="connectAndFetch(); if(window.innerWidth < 768) { document.querySelector('details.group').removeAttribute('open'); }" 
-                                class="flex-1 xl:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[34px]">
+                                class="flex-1 xl:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[44px]">
                             <i class="fa-solid fa-rotate text-[11px]"></i>
                             <span>Fetch</span>
                         </button>
                         <button onclick="shareDashboardLink()" 
-                                class="flex-1 xl:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[34px]"
+                                class="flex-1 xl:flex-none bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[44px]"
                                 title="Copy config share link for other guardians">
                             <i class="fa-solid fa-share-nodes text-[11px]"></i>
                             <span id="share-btn-text">Share Link</span>
@@ -269,7 +269,7 @@
                             <i class="fa-solid fa-message text-blue-600 mr-2"></i>
                             Intercepted SMS Telemetry
                         </h3>
-                        <input type="text" id="sms-search" oninput="filterSms()" placeholder="Search sender or text..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="sms-search" oninput="filterSms()" placeholder="Search sender or text..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="overflow-x-auto border border-slate-100 rounded-xl">
@@ -301,7 +301,7 @@
                             <i class="fa-solid fa-phone text-orange-600 mr-2"></i>
                             Call Log Histories
                         </h3>
-                        <input type="text" id="calls-search" oninput="filterCalls()" placeholder="Search phone number..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="calls-search" oninput="filterCalls()" placeholder="Search phone number..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="overflow-x-auto border border-slate-100 rounded-xl">
@@ -330,7 +330,7 @@
                             <i class="fa-solid fa-address-book text-emerald-600 mr-2"></i>
                             Kid's Phone Contacts
                         </h3>
-                        <input type="text" id="contacts-search" oninput="filterContacts()" placeholder="Search name..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="contacts-search" oninput="filterContacts()" placeholder="Search name..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="contacts-grid">
@@ -345,7 +345,7 @@
                             <i class="fa-solid fa-share-nodes text-pink-600 mr-2"></i>
                             Intercepted Social Chat Messages
                         </h3>
-                        <input type="text" id="social-search" oninput="filterSocial()" placeholder="Search message or sender..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="social-search" oninput="filterSocial()" placeholder="Search message or sender..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
@@ -377,7 +377,7 @@
                             <i class="fa-solid fa-file-image text-emerald-600 mr-2"></i>
                             Observed File System Assets (MIME / Path Synchronization)
                         </h3>
-                        <input type="text" id="files-search" oninput="filterFiles()" placeholder="Search filename or path..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="files-search" oninput="filterFiles()" placeholder="Search filename or path..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
@@ -409,7 +409,7 @@
                             <i class="fa-solid fa-link text-indigo-600 mr-2"></i>
                             Intercepted Intents & URL Links
                         </h3>
-                        <input type="text" id="intents-search" oninput="filterIntents()" placeholder="Search URL or action..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="text" id="intents-search" oninput="filterIntents()" placeholder="Search URL or action..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
                     <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
