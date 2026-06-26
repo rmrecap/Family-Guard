@@ -244,6 +244,7 @@
                         <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center">
                             <span class="truncate">FAMILY GUARD</span>
                             <span class="ml-2 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold bg-blue-100 text-blue-800 rounded whitespace-nowrap">REMOTE</span>
+                            <span id="admin-badge" class="hidden ml-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold bg-amber-100 text-amber-800 rounded whitespace-nowrap">ADMIN</span>
                         </h1>
                         <p class="text-xs text-slate-500 truncate">Parental Monitoring & Security Telemetry</p>
                     </div>
@@ -438,6 +439,10 @@
                     <i class="fa-solid fa-link text-indigo-600"></i>
                     <span>Intent Filter</span>
                 </button>
+                <button onclick="switchTab('devices')" id="tab-devices" class="hidden whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 focus:outline-none flex items-center space-x-2">
+                    <i class="fa-solid fa-server text-amber-600"></i>
+                    <span>All Devices</span>
+                </button>
                 <button onclick="switchTab('raw')" id="tab-raw" class="whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 focus:outline-none flex items-center space-x-2">
                     <i class="fa-solid fa-code"></i>
                     <span>Raw JSON Payload</span>
@@ -626,6 +631,27 @@
                     </h3>
                     <p class="text-xs text-slate-500">The raw structured telemetry uploaded directly from the kid's device:</p>
                     <pre id="raw-json" class="w-full h-96 bg-slate-950 text-emerald-400 p-4 rounded-xl border border-slate-800 monospace text-xs overflow-auto">{}</pre>
+                </div>
+
+                <!-- All Devices Tab (admin only) -->
+                <div id="content-devices" class="space-y-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-server text-amber-600 mr-2"></i>
+                            All Paired Devices
+                        </h3>
+                        <button onclick="refreshDeviceOverview()" class="text-xs font-semibold text-amber-700 hover:text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors cursor-pointer flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Refresh All</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500">Click any device to load its full dashboard data.</p>
+                    <div id="device-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="col-span-full p-8 text-center text-slate-400">
+                            <i class="fa-solid fa-circle-notch animate-spin text-xl text-amber-500 mb-2 block"></i>
+                            Loading devices...
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -870,9 +896,16 @@
                 currentUser = user;
                 updateAuthUI();
                 if (user) {
-                    fetchDevicesList().then(() => {
-                        connectAndFetch();
-                    });
+                    if (isAdmin()) {
+                        fetchDevicesList().then(() => {
+                            renderDeviceOverview();
+                            switchTab('devices');
+                        });
+                    } else {
+                        fetchDevicesList().then(() => {
+                            connectAndFetch();
+                        });
+                    }
                 }
             });
         }
@@ -885,7 +918,9 @@
             document.getElementById('pairing-email').textContent = user.email || '';
             const saved = localStorage.getItem('fg_device_id') || '';
             document.getElementById('pairing-device-id').value = saved;
-            document.getElementById('pairing-device-id').focus();
+            requestAnimationFrame(() => {
+                document.getElementById('pairing-device-id').focus();
+            });
         }
 
         function completePairing() {
@@ -982,7 +1017,17 @@
             firebase.auth().signInWithPopup(provider)
                 .then((result) => {
                     currentUser = result.user;
-                    showPairingStep(result.user);
+                    const admin = isAdmin();
+                    if (admin) {
+                        updateAuthUI();
+                        fetchDevicesList().then(() => {
+                            connectAndFetch().then(() => {
+                                switchTab('devices');
+                            });
+                        });
+                    } else {
+                        showPairingStep(result.user);
+                    }
                     btn.disabled = false;
                     btn.setAttribute('aria-busy', 'false');
                     label.textContent = 'Sign in with Google';
@@ -1020,6 +1065,8 @@
         function updateAuthUI() {
             const overlay = document.getElementById("login-overlay");
             const profileWidget = document.getElementById("profile-widget");
+            const adminBadge = document.getElementById("admin-badge");
+            const devicesTab = document.getElementById("tab-devices");
             
             const isLegacy = localStorage.getItem("fg_legacy_mode") === "true";
             
@@ -1028,7 +1075,7 @@
                 profileWidget.classList.remove("hidden");
                 profileWidget.innerHTML = `
                     <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-100 hover:bg-slate-200 transition-colors p-1 pr-2 sm:pr-3 rounded-full border border-slate-200">
-                        <img src="${currentUser.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-slate-300">
+                        <img src="${currentUser.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y'}" alt="User profile photo" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-slate-300">
                         <div class="text-left hidden md:block">
                             <p class="text-xs font-bold text-slate-800 leading-none">${currentUser.displayName || 'Guardian'}</p>
                             <p class="text-[9px] text-slate-500 leading-none mt-0.5">${currentUser.email}</p>
@@ -1038,6 +1085,12 @@
                         </button>
                     </div>
                 `;
+                const admin = isAdmin();
+                if (adminBadge) adminBadge.classList.toggle('hidden', !admin);
+                if (devicesTab) devicesTab.classList.toggle('hidden', !admin);
+                if (admin) {
+                    fetchDevicesList().then(() => renderDeviceOverview());
+                }
             } else if (isLegacy) {
                 overlay.classList.add("hidden");
                 profileWidget.classList.remove("hidden");
@@ -1050,18 +1103,29 @@
                         </button>
                     </div>
                 `;
+                if (adminBadge) adminBadge.classList.add('hidden');
+                if (devicesTab) devicesTab.classList.add('hidden');
             } else {
                 overlay.classList.remove("hidden");
                 profileWidget.classList.add("hidden");
+                if (adminBadge) adminBadge.classList.add('hidden');
+                if (devicesTab) devicesTab.classList.add('hidden');
             }
         }
 
 
 
+        // Super admin config — set your email(s) here to access all devices
+        const ADMIN_EMAILS = ["asmasadiajeba@gmail.com"];
+
+        function isAdmin() {
+            return currentUser && ADMIN_EMAILS.includes(currentUser.email);
+        }
+
         // Get DB prefix path based on user login
         function getDatabasePathPrefix() {
             const isLegacy = localStorage.getItem("fg_legacy_mode") === "true";
-            if (currentUser && !isLegacy) {
+            if (currentUser && !isLegacy && !isAdmin()) {
                 return `users/${currentUser.uid}/`;
             }
             return "";
@@ -1134,6 +1198,89 @@
             }
         }
 
+        let deviceOverviewCache = {};
+
+        async function renderDeviceOverview() {
+            const grid = document.getElementById("device-grid");
+            if (!grid) return;
+            grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-400"><i class="fa-solid fa-circle-notch animate-spin text-xl text-amber-500 mb-2 block"></i>Loading devices...</div>';
+
+            let dbUrl = document.getElementById("db-url").value.trim();
+            if (!dbUrl) { grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-400">Configure a Database URL first.</div>'; return; }
+            if (!dbUrl.startsWith("http")) dbUrl = "https://" + dbUrl;
+            if (!dbUrl.endsWith("/")) dbUrl += "/";
+
+            try {
+                const listUrl = await getAuthenticatedUrl(dbUrl, "devices", "shallow=true");
+                const listResp = await fetch(listUrl);
+                if (!listResp.ok) throw new Error("HTTP " + listResp.status);
+                const listData = await listResp.json();
+                const deviceIds = listData && typeof listData === 'object' ? Object.keys(listData) : [];
+
+                if (deviceIds.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full p-8 text-center text-slate-400">No devices found in the database.</div>';
+                    return;
+                }
+
+                const cards = await Promise.all(deviceIds.map(async (id) => {
+                    try {
+                        const infoUrl = await getAuthenticatedUrl(dbUrl, `devices/${id}/device_info`);
+                        const infoResp = await fetch(infoUrl);
+                        let info = {};
+                        if (infoResp.ok) info = await infoResp.json() || {};
+                        const batt = info.battery_level !== undefined ? info.battery_level : '?';
+                        const battIcon = batt === '?' ? 'fa-battery-half' :
+                            batt > 70 ? 'fa-battery-full' :
+                            batt > 30 ? 'fa-battery-three-quarters' :
+                            batt > 10 ? 'fa-battery-quarter' : 'fa-battery-empty';
+                        const battColor = batt === '?' ? 'text-slate-400' :
+                            batt > 20 ? 'text-emerald-600' :
+                            batt > 10 ? 'text-amber-600' : 'text-red-600';
+                        const lastUpdate = info.last_updated || info.last_sync || null;
+                        const timeAgo = lastUpdate ? Math.floor((Date.now() - new Date(lastUpdate).getTime()) / 60000) + 'm ago' : 'Unknown';
+                        deviceOverviewCache[id] = info;
+                        return { id, batt, battIcon, battColor, lastUpdate, timeAgo };
+                    } catch (e) {
+                        return { id, batt: '?', battIcon: 'fa-battery-half', battColor: 'text-slate-400', lastUpdate: null, timeAgo: 'Unreachable', error: true };
+                    }
+                }));
+
+                grid.innerHTML = cards.map(c => `
+                    <div onclick="loadAdminDevice('${c.id}')" class="bg-white rounded-xl border border-slate-200 hover:border-amber-300 hover:shadow-md transition-all p-4 cursor-pointer group">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-sm text-slate-800 monospace group-hover:text-amber-700 truncate">${c.id}</span>
+                            <span class="text-xs text-slate-400">${c.timeAgo}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs text-slate-500">
+                            <i class="fa-solid ${c.battIcon} ${c.battColor}"></i>
+                            <span>Battery: ${c.batt}%</span>
+                            ${c.error ? '<span class="text-red-500 ml-auto"><i class="fa-solid fa-triangle-exclamation"></i></span>' : ''}
+                        </div>
+                        <div class="mt-2 text-xs text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold flex items-center">
+                            <i class="fa-solid fa-arrow-right mr-1"></i> Load Dashboard
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Device overview error:", err);
+                grid.innerHTML = `<div class="col-span-full p-8 text-center text-red-400"><i class="fa-solid fa-triangle-exclamation text-xl mb-2 block"></i>Failed to load devices: ${err.message}</div>`;
+            }
+        }
+
+        async function refreshDeviceOverview() {
+            deviceOverviewCache = {};
+            await renderDeviceOverview();
+        }
+
+        function loadAdminDevice(deviceId) {
+            document.getElementById("device-id").value = deviceId;
+            const sel = document.getElementById("device-selector");
+            if (sel) sel.value = deviceId;
+            connectAndFetch().then(() => {
+                switchTab('sms');
+            });
+        }
+
         function onDeviceSelect() {
             const selected = document.getElementById("device-selector").value;
             document.getElementById("device-id").value = selected;
@@ -1178,18 +1325,21 @@
 
         function switchTab(tabId) {
             currentTab = tabId;
-            const tabs = ['sms', 'calls', 'contacts', 'social', 'files', 'intents', 'raw'];
+            const tabs = ['sms', 'calls', 'contacts', 'social', 'files', 'intents', 'raw', 'devices'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 const content = document.getElementById(`content-${t}`);
-                if (t === tabId) {
-                    btn.className = "whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2";
-                    content.classList.remove('hidden');
-                } else {
-                    btn.className = "whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 focus:outline-none flex items-center space-x-2";
-                    content.classList.add('hidden');
+                if (btn && content) {
+                    if (t === tabId) {
+                        btn.className = "whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2";
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.className = "whitespace-nowrap px-3 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 focus:outline-none flex items-center space-x-2";
+                        content.classList.add('hidden');
+                    }
                 }
             });
+            if (tabId === 'devices') renderDeviceOverview();
         }
 
         async function connectAndFetch() {
@@ -1211,7 +1361,7 @@
 
             const statusIndicator = document.getElementById("connection-status");
             statusIndicator.innerText = "Syncing...";
-            statusIndicator.className = "text-xs font-semibold text-orange-600";
+            statusIndicator.className = "text-xs font-semibold text-orange-800";
 
             fetchDevicesList();
 
