@@ -13,8 +13,10 @@
     <!-- Preload critical resources for early discovery -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" as="style">
-    <!-- Tailwind CSS (pre-built static file — no runtime cost) -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="preload" href="style.css" as="style">
+    <!-- Tailwind CSS (loaded async — not render-blocking) -->
+    <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="style.css"></noscript>
     <!-- Google Fonts (loaded asynchronously — preconnected above) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
@@ -32,17 +34,199 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow-x: hidden;
         }
         .monospace {
             font-family: 'JetBrains Mono', monospace;
         }
-        /* Override Font Awesome's default font-display:block → swap to avoid FOIT */
         @font-face {
             font-family: 'Font Awesome 6 Free';
             font-style: normal;
             font-weight: 900;
             font-display: swap;
             src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2') format('woff2');
+        }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .max-w-7xl { max-width: 80rem; }
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .flex-grow { flex-grow: 1; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .flex-1 { flex: 1 1 0%; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .gap-3 { gap: 0.75rem; }
+        .gap-2 { gap: 0.5rem; }
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-x-hidden { overflow-x: hidden; }
+        .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem; }
+        .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
+        .space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.5rem; }
+        .space-x-3 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.75rem; }
+        .space-x-1\\.5 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.375rem; }
+        .sticky { position: sticky; }
+        .top-0 { top: 0; }
+        .z-50 { z-index: 50; }
+        .bg-white { background-color: #fff; }
+        .bg-slate-50 { background-color: #f8fafc; }
+        .bg-blue-100 { background-color: #dbeafe; }
+        .bg-blue-50 { background-color: #eff6ff; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-orange-50 { background-color: #fff7ed; }
+        .bg-emerald-50 { background-color: #ecfdf5; }
+        .bg-emerald-500 { background-color: #10b981; }
+        .bg-slate-100 { background-color: #f1f5f9; }
+        .bg-indigo-50 { background-color: #eef2ff; }
+        .bg-indigo-600 { background-color: #4f46e5; }
+        .border { border-width: 1px; }
+        .border-b { border-bottom-width: 1px; }
+        .border-t { border-top-width: 1px; }
+        .border-b-2 { border-bottom-width: 2px; }
+        .border-slate-200 { border-color: #e2e8f0; }
+        .border-slate-100 { border-color: #f1f5f9; }
+        .border-slate-300 { border-color: #cbd5e1; }
+        .border-blue-600 { border-color: #2563eb; }
+        .border-transparent { border-color: transparent; }
+        .border-emerald-500\\/20 { border-color: rgba(16,185,129,0.2); }
+        .border-indigo-200 { border-color: #c7d2fe; }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded { border-radius: 0.25rem; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .px-1\\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-0\\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+        .p-8 { padding: 2rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-3 { padding: 0.75rem; }
+        .pb-4 { padding-bottom: 1rem; }
+        .pb-1 { padding-bottom: 0.25rem; }
+        .pt-4 { padding-top: 1rem; }
+        .pl-4 { padding-left: 1rem; }
+        .ml-2 { margin-left: 0.5rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-0\\.5 { margin-top: 0.125rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .w-10 { width: 2.5rem; }
+        .w-2 { width: 0.5rem; }
+        .w-8 { width: 2rem; }
+        .h-10 { height: 2.5rem; }
+        .h-2 { height: 0.5rem; }
+        .h-8 { height: 2rem; }
+        .min-w-0 { min-width: 0; }
+        .min-h-\\[44px\\] { min-height: 44px; }
+        .cursor-pointer { cursor: pointer; }
+        .list-none { list-style-type: none; }
+        .outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+        .block { display: block; }
+        .hidden { display: none; }
+        .flex-nowrap { flex-wrap: nowrap; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .whitespace-nowrap { white-space: nowrap; }
+        .uppercase { text-transform: uppercase; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-base { font-size: 1rem; line-height: 1.5rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-\\[9px\\] { font-size: 9px; }
+        .text-\\[10px\\] { font-size: 10px; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-extrabold { font-weight: 800; }
+        .text-slate-900 { color: #0f172a; }
+        .text-slate-800 { color: #1e293b; }
+        .text-slate-600 { color: #475569; }
+        .text-slate-500 { color: #64748b; }
+        .text-white { color: #fff; }
+        .text-blue-800 { color: #1e40af; }
+        .text-blue-600 { color: #2563eb; }
+        .text-blue-500 { color: #3b82f6; }
+        .text-orange-600 { color: #ea580c; }
+        .text-emerald-700 { color: #047857; }
+        .text-emerald-600 { color: #059669; }
+        .text-indigo-900 { color: #312e81; }
+        .text-indigo-950 { color: #1e1b4b; }
+        .text-indigo-600 { color: #4f46e5; }
+        .text-pink-600 { color: #db2777; }
+        .tracking-tight { letter-spacing: -0.025em; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .leading-tight { line-height: 1.25; }
+        .border-collapse { border-collapse: collapse; }
+        .divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; }
+        .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #f1f5f9; }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .transition-transform { transition-property: transform; transition-duration: 0.15s; }
+        .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-duration: 0.15s; }
+        details summary::-webkit-details-marker { display: none; }
+        .group[open] .group-open\\:rotate-180 { transform: rotate(180deg); }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+        @keyframes spin { to { transform: rotate(1turn); } }
+        @media (min-width: 640px) {
+            .sm\\:flex-row { flex-direction: row; }
+            .sm\\:items-center { align-items: center; }
+            .sm\\:h-16 { height: 4rem; }
+            .sm\\:px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .sm\\:p-6 { padding: 1.5rem; }
+            .sm\\:p-5 { padding: 1.25rem; }
+            .sm\\:p-4 { padding: 1rem; }
+            .sm\\:pb-6 { padding-bottom: 1.5rem; }
+            .sm\\:text-base { font-size: 1rem; line-height: 1.5rem; }
+            .sm\\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+            .sm\\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+            .sm\\:text-\\[10px\\] { font-size: 10px; }
+            .sm\\:gap-5 { gap: 1.25rem; }
+            .sm\\:space-x-4 > :not([hidden]) ~ :not([hidden]) { margin-left: 1rem; }
+            .sm\\:space-y-0 > :not([hidden]) ~ :not([hidden]) { margin-top: 0; }
+            .sm\\:py-1\\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+            .sm\\:px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .sm\\:w-12 { width: 3rem; }
+            .sm\\:h-12 { height: 3rem; }
+        }
+        @media (min-width: 768px) {
+            .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .md\\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+        }
+        @media (min-width: 1024px) {
+            .lg\\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+        }
+        @media (min-width: 1280px) {
+            .xl\\:flex-row { flex-direction: row; }
+            .xl\\:items-end { align-items: flex-end; }
+            .xl\\:w-44 { width: 11rem; }
+            .xl\\:w-48 { width: 12rem; }
+            .xl\\:w-36 { width: 9rem; }
+            .xl\\:w-40 { width: 10rem; }
+            .xl\\:w-auto { width: auto; }
+            .xl\\:flex-none { flex: none; }
+            .xl\\:mt-0 { margin-top: 0; }
         }
     </style>
 
@@ -150,7 +334,7 @@
                     </div>
                     <!-- Control buttons -->
                     <div class="flex gap-2 w-full xl:w-auto mt-2 xl:mt-0">
-                        <button onclick="connectAndFetch(); if(window.innerWidth < 768) { document.querySelector('details.group').removeAttribute('open'); }" 
+                        <button onclick="connectAndFetch(); if(window.matchMedia('(max-width:767px)').matches) { document.querySelector('details.group').removeAttribute('open'); }" 
                                 class="flex-1 xl:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center space-x-1.5 min-h-[44px]">
                             <i class="fa-solid fa-rotate text-[11px]"></i>
                             <span>Fetch</span>
@@ -172,8 +356,8 @@
                 </div>
             </div>
             <script>
-                if (window.innerWidth < 768) {
-                    document.querySelector('details.group').removeAttribute('open');
+                if (window.matchMedia('(max-width:767px)').matches) {
+                    document.querySelector('details.group')?.removeAttribute('open');
                 }
             </script>
         </details>
