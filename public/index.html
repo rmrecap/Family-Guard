@@ -12,14 +12,14 @@
     <link rel="preconnect" href="https://www.gstatic.com">
     <!-- Preload critical resources for early discovery -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=optional" as="style">
     <link rel="preload" href="style.css" as="style">
     <!-- Tailwind CSS (loaded async — not render-blocking) -->
     <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="style.css"></noscript>
     <!-- Google Fonts (loaded asynchronously — preconnected above) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=optional" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=optional" rel="stylesheet"></noscript>
     <!-- Font Awesome (loaded asynchronously via media swap trick) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     
@@ -267,7 +267,7 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" style="min-height:400px">
         
         <!-- Connection Configuration Box -->
         <details class="bg-white rounded-2xl shadow-sm border border-slate-200 group" open>
@@ -680,9 +680,9 @@
                 <p class="text-xs text-slate-400 leading-relaxed">Sign in with your Google account. Each guardian's data is fully isolated — only you can see your child's device.</p>
             </div>
             <div class="space-y-3 pt-2">
-                <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-50 text-slate-900 text-sm font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center space-x-3 border border-slate-200 cursor-pointer">
+                <button id="btn-google-signin" onclick="loginWithGoogle()" aria-busy="false" class="w-full bg-white hover:bg-slate-50 disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-900 disabled:text-slate-500 text-sm font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center space-x-3 border border-slate-200 cursor-pointer">
                     <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.99 5.99 0 0 1 8 12.5a5.99 5.99 0 0 1 5.99-5.991c1.55 0 2.96.59 4.04 1.554l3.076-3.075A9.957 9.957 0 0 0 13.99 2 9.99 9.99 0 0 0 4 12a9.99 9.99 0 0 0 9.99 10c5.518 0 9.99-4.482 9.99-10 0-.648-.06-1.285-.18-1.9L12.24 10.285Z"/></svg>
-                    <span>Sign in with Google</span>
+                    <span id="btn-google-label">Sign in with Google</span>
                 </button>
                 <div class="flex items-center text-xs text-slate-500 py-1">
                     <span class="w-full border-b border-slate-800"></span>
@@ -785,7 +785,7 @@
         </div>
     </div>
 
-    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-600">
         <p>&copy; 2026 Family Guard System. Designed for secure remote parental protection.</p>
     </footer>
 
@@ -942,6 +942,13 @@
         }
 
         function loginWithGoogle() {
+            const btn = document.getElementById('btn-google-signin');
+            const label = document.getElementById('btn-google-label');
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+            label.textContent = 'Signing in...';
+
             const dbUrl = document.getElementById("db-url").value.trim();
             const apiKey = document.getElementById("api-key").value.trim();
 
@@ -953,6 +960,9 @@
                         localStorage.setItem("fg_api_key", typedKey);
                         tryInitFirebase(dbUrl, typedKey);
                     } else {
+                        btn.disabled = false;
+                        btn.setAttribute('aria-busy', 'false');
+                        label.textContent = 'Sign in with Google';
                         return;
                     }
                 } else {
@@ -962,6 +972,9 @@
 
             if (!isFirebaseInitialized) {
                 alert("Firebase Auth could not be initialized. Please check your Web API Key and Database URL.");
+                btn.disabled = false;
+                btn.setAttribute('aria-busy', 'false');
+                label.textContent = 'Sign in with Google';
                 return;
             }
 
@@ -970,10 +983,16 @@
                 .then((result) => {
                     currentUser = result.user;
                     showPairingStep(result.user);
+                    btn.disabled = false;
+                    btn.setAttribute('aria-busy', 'false');
+                    label.textContent = 'Sign in with Google';
                 })
                 .catch((err) => {
                     console.error(err);
                     alert("Google Sign-In failed: " + err.message + "\n\nNote: Google Sign-In requires running on a server (e.g. localhost or Firebase Hosting). If you opened the file directly (file:///), use Legacy Mode instead.");
+                    btn.disabled = false;
+                    btn.setAttribute('aria-busy', 'false');
+                    label.textContent = 'Sign in with Google';
                 });
         }
 
