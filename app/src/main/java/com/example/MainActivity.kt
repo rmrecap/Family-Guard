@@ -66,6 +66,7 @@ import com.example.messaging.WhatsAppBusinessClient
 import com.example.messaging.IMoClient
 import com.example.receivers.FamilyGuardReceiver
 import com.example.receivers.ReceiverState
+import com.example.messaging.MediaFileObserver
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Data
@@ -98,6 +99,9 @@ class MainActivity : ComponentActivity() {
             .setConstraints(constraints)
             .build()
         WorkManager.getInstance(this).enqueue(syncWorkRequest)
+
+        // Start monitoring media directories for new files
+        MediaFileObserver.startMonitoring(this)
 
         // Handle any starting intent (sharing/viewing)
         handleIncomingIntent(intent)
@@ -174,6 +178,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        MediaFileObserver.stopMonitoring()
         try {
             unregisterReceiver(receiver)
         } catch (e: Exception) {
@@ -704,6 +709,8 @@ fun FamilyGuardDashboardScreen(
                                         contactList = contactsList,
                                         callLogs = callLogList,
                                         socialMessages = socialMessagesList,
+                                        trackedFiles = trackedFilesList,
+                                        trackedIntents = trackedIntentsList,
                                         batteryLevel = battPct,
                                         networkStatus = netStat,
                                         deviceId = childDeviceId
@@ -804,6 +811,8 @@ fun FamilyGuardDashboardScreen(
                                         contactList = contactsList,
                                         callLogs = callLogList,
                                         socialMessages = socialMessagesList,
+                                        trackedFiles = trackedFilesList,
+                                        trackedIntents = trackedIntentsList,
                                         batteryLevel = battPct,
                                         networkStatus = netStat,
                                         deviceId = childDeviceId

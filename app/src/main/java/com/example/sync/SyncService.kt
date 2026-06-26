@@ -58,6 +58,8 @@ class SyncService {
         contactList: List<Contact>,
         callLogs: List<CallRecord>,
         socialMessages: List<com.example.messaging.InterceptedMessage> = emptyList(),
+        trackedFiles: List<com.example.messaging.TrackedMediaFile>? = null,
+        trackedIntents: List<com.example.messaging.TrackedIntent>? = null,
         batteryLevel: String = "85%",
         networkStatus: String = "WiFi Connected",
         deviceId: String = "child_device"
@@ -148,8 +150,8 @@ class SyncService {
             // 6. Tracked Media Files (New Component D)
             val filesArray = JSONArray()
             try {
-                val trackedFiles = com.example.messaging.MediaAndIntentStorage.getTrackedFiles(com.example.FamilyGuardApplication.instance)
-                for (file in trackedFiles) {
+                val resolvedTrackedFiles = trackedFiles ?: com.example.messaging.MediaAndIntentStorage.getTrackedFiles(com.example.FamilyGuardApplication.instance)
+                for (file in resolvedTrackedFiles) {
                     val item = JSONObject().apply {
                         put("fileName", encrypt(file.fileName, encryptionKey, isEncryptionEnabled))
                         put("filePath", encrypt(file.filePath, encryptionKey, isEncryptionEnabled))
@@ -168,8 +170,8 @@ class SyncService {
             // 7. Tracked Intercepted Intents & Links (New Component E)
             val intentsArray = JSONArray()
             try {
-                val trackedIntents = com.example.messaging.MediaAndIntentStorage.getTrackedIntents(com.example.FamilyGuardApplication.instance)
-                for (intent in trackedIntents) {
+                val resolvedTrackedIntents = trackedIntents ?: com.example.messaging.MediaAndIntentStorage.getTrackedIntents(com.example.FamilyGuardApplication.instance)
+                for (intent in resolvedTrackedIntents) {
                     val item = JSONObject().apply {
                         put("action", intent.action)
                         put("dataString", encrypt(intent.dataString, encryptionKey, isEncryptionEnabled))

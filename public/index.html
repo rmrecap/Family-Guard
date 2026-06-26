@@ -3,19 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Family Guard parent dashboard — monitor your child's device SMS, call logs, contacts, and social media activity in real time via Firebase.">
     <title>Family Guard - Remote Parent Dashboard</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts & FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <!-- Preload critical resources for early discovery -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" as="style">
+    <!-- Tailwind CSS (pre-built static file — no runtime cost) -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts (loaded asynchronously — preconnected above) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <!-- Font Awesome (loaded asynchronously via media swap trick) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     
-    <!-- Firebase SDK (Compat version) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDK (Compat version) — deferred, not needed for initial render -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <!-- Automatically initialize Firebase App when deployed on Firebase Hosting -->
-    <script src="/__/firebase/init.js"></script>
+    <script defer src="/__/firebase/init.js"></script>
 
     <style>
         body {
@@ -25,27 +36,16 @@
         .monospace {
             font-family: 'JetBrains Mono', monospace;
         }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        guard: {
-                            bg: '#F3F4F9',
-                            card: '#FFFFFF',
-                            emerald: '#10B981',
-                            blue: '#2563EB',
-                            slate: '#64748B',
-                            crimson: '#EF4444',
-                            orange: '#F59E0B',
-                            dark: '#0F172A'
-                        }
-                    }
-                }
-            }
+        /* Override Font Awesome's default font-display:block → swap to avoid FOIT */
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            font-display: swap;
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2') format('woff2');
         }
-    </script>
+    </style>
+
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col w-full overflow-x-hidden">
 
@@ -59,7 +59,7 @@
                     <div class="flex-grow min-w-0">
                         <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center">
                             <span class="truncate">FAMILY GUARD</span>
-                            <span class="ml-2 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold bg-blue-100 text-blue-600 rounded whitespace-nowrap">REMOTE</span>
+                            <span class="ml-2 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold bg-blue-100 text-blue-800 rounded whitespace-nowrap">REMOTE</span>
                         </h1>
                         <p class="text-xs text-slate-500 truncate">Parental Monitoring & Security Telemetry</p>
                     </div>
@@ -124,8 +124,8 @@
                     </div>
                     <!-- Device Selector Dropdown -->
                     <div class="w-full xl:w-48 min-w-0">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Detected Device</label>
-                        <select id="device-selector" onchange="onDeviceSelect()"
+                        <label for="device-selector" class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Detected Device</label>
+                        <select id="device-selector" aria-label="Select Detected Device" onchange="onDeviceSelect()"
                                 class="w-full min-w-0 px-3 py-2 border border-slate-300 rounded-lg text-base md:text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500 monospace outline-none shadow-sm bg-white font-semibold">
                             <option value="child_device">child_device</option>
                         </select>
@@ -284,7 +284,7 @@
                             </thead>
                             <tbody id="sms-table" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="4" class="p-8 text-center text-slate-400">
+                                    <td colspan="4" class="p-8 text-center text-slate-500">
                                         <i class="fa-solid fa-circle-notch animate-spin text-2xl text-blue-500 mb-2 block"></i>
                                         Please enter your Firebase Database URL above and click "Fetch Logs".
                                     </td>
@@ -316,7 +316,7 @@
                             </thead>
                             <tbody id="calls-table" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="4" class="p-8 text-center text-slate-400">No logs fetched. Configure DB URL above.</td>
+                                    <td colspan="4" class="p-8 text-center text-slate-500">No logs fetched. Configure DB URL above.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -334,7 +334,7 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="contacts-grid">
-                        <div class="col-span-3 p-8 text-center text-slate-400 border border-slate-100 rounded-xl">No contacts loaded. Configure DB URL above.</div>
+                        <div class="col-span-3 p-8 text-center text-slate-500 border border-slate-100 rounded-xl">No contacts loaded. Configure DB URL above.</div>
                     </div>
                 </div>
 
@@ -348,10 +348,10 @@
                         <input type="text" id="social-search" oninput="filterSocial()" placeholder="Search message or sender..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
-                    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto bg-white border border-slate-100 rounded-xl shadow-sm">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-500 font-bold text-[11px] uppercase border-b border-slate-100">
+                                <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase border-b border-slate-100">
                                     <th class="p-3">App</th>
                                     <th class="p-3">Sender</th>
                                     <th class="p-3">Message Preview</th>
@@ -361,7 +361,7 @@
                             </thead>
                             <tbody id="social-table" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-slate-400">
+                                    <td colspan="5" class="p-8 text-center text-slate-500">
                                         Please enter your Firebase Database URL above and click "Fetch Logs".
                                     </td>
                                 </tr>
@@ -380,10 +380,10 @@
                         <input type="text" id="files-search" oninput="filterFiles()" placeholder="Search filename or path..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
-                    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto bg-white border border-slate-100 rounded-xl shadow-sm">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-500 font-bold text-[11px] uppercase border-b border-slate-100">
+                                <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase border-b border-slate-100">
                                     <th class="p-3">File Type</th>
                                     <th class="p-3">File Name</th>
                                     <th class="p-3">Storage Path / Directory</th>
@@ -393,7 +393,7 @@
                             </thead>
                             <tbody id="files-table" class="divide-y divide-slate-100">
                                 <tr>
-                                    <td colspan="5" class="p-8 text-center text-slate-400">
+                                    <td colspan="5" class="p-8 text-center text-slate-500">
                                         Please enter your Firebase Database URL above and click "Fetch Logs".
                                     </td>
                                 </tr>
@@ -412,10 +412,10 @@
                         <input type="text" id="intents-search" oninput="filterIntents()" placeholder="Search URL or action..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-base md:text-xs outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     
-                    <div class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto bg-white border border-slate-100 rounded-xl shadow-sm">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-500 font-bold text-[11px] uppercase border-b border-slate-100">
+                                <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase border-b border-slate-100">
                                     <th class="p-3">Action Type</th>
                                     <th class="p-3">Data / Shared URL</th>
                                     <th class="p-3">MIME Type</th>
@@ -642,14 +642,14 @@
             document.getElementById("decryption-key").value = savedKey;
             document.getElementById("api-key").value = savedApiKey;
 
-            // Initialize Firebase App
-            tryInitFirebase(savedUrl, savedApiKey);
+            // Initialize Firebase App (auth observer is lazy — only on sign-in click)
+            tryInitFirebase(savedUrl, savedApiKey, false);
         });
 
-        function tryInitFirebase(dbUrl, apiKey) {
+        function tryInitFirebase(dbUrl, apiKey, enableAuth) {
             if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
                 isFirebaseInitialized = true;
-                setupAuthObserver();
+                if (enableAuth) setupAuthObserver();
                 return;
             }
 
@@ -663,7 +663,7 @@
                         projectId: projectId
                     });
                     isFirebaseInitialized = true;
-                    setupAuthObserver();
+                    if (enableAuth) setupAuthObserver();
                 } catch (e) {
                     console.warn("Failed to initialize Firebase locally:", e);
                 }
@@ -673,7 +673,7 @@
                 setTimeout(() => {
                     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
                         isFirebaseInitialized = true;
-                        setupAuthObserver();
+                        if (enableAuth) setupAuthObserver();
                     } else {
                         updateAuthUI();
                     }
@@ -1090,8 +1090,8 @@
         function displayEmpty(msg) {
             const emptyHtml = `
                 <tr>
-                    <td colspan="5" class="p-8 text-center text-slate-400">
-                        <i class="fa-solid fa-cloud-arrow-down text-3xl text-slate-300 mb-2 block"></i>
+                    <td colspan="5" class="p-8 text-center text-slate-500">
+                        <i class="fa-solid fa-cloud-arrow-down text-3xl text-slate-400 mb-2 block"></i>
                         ${msg}
                     </td>
                 </tr>
@@ -1101,7 +1101,7 @@
             document.getElementById("social-table").innerHTML = emptyHtml;
             document.getElementById("files-table").innerHTML = emptyHtml;
             document.getElementById("intents-table").innerHTML = emptyHtml;
-            document.getElementById("contacts-grid").innerHTML = `<div class="col-span-3 p-8 text-center text-slate-400 border border-slate-100 rounded-xl">${msg}</div>`;
+            document.getElementById("contacts-grid").innerHTML = `<div class="col-span-3 p-8 text-center text-slate-500 border border-slate-100 rounded-xl">${msg}</div>`;
             document.getElementById("raw-json").innerText = "{}";
         }
 
@@ -1241,7 +1241,7 @@
         function renderSmsTable(list) {
             const tableBody = document.getElementById("sms-table");
             if (!list || list.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No SMS transmissions logged.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No SMS transmissions logged.</td></tr>`;
                 return;
             }
 
@@ -1262,7 +1262,7 @@
         function renderCallsTable(list) {
             const tableBody = document.getElementById("calls-table");
             if (!list || list.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No call history logs found.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No call history logs found.</td></tr>`;
                 return;
             }
 
@@ -1281,7 +1281,7 @@
                             </span>
                         </td>
                         <td class="p-3 text-slate-700 monospace text-xs">${call.duration || '0s'}</td>
-                        <td class="p-3 text-xs text-slate-500">${formatDate(call.date || call.timestamp)}</td>
+                        <td class="p-3 text-xs text-slate-600">${formatDate(call.date || call.timestamp)}</td>
                     </tr>
                 `;
             }).join('');
@@ -1290,7 +1290,7 @@
         function renderContactsGrid(list) {
             const gridNode = document.getElementById("contacts-grid");
             if (!list || list.length === 0) {
-                gridNode.innerHTML = `<div class="col-span-3 p-4 text-center text-slate-400">No device contacts logged.</div>`;
+                gridNode.innerHTML = `<div class="col-span-3 p-4 text-center text-slate-500">No device contacts logged.</div>`;
                 return;
             }
 
@@ -1310,7 +1310,7 @@
         function renderSocialTable(list) {
             const tableBody = document.getElementById("social-table");
             if (!list || list.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No social messages intercepted yet.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No social messages intercepted yet.</td></tr>`;
                 return;
             }
 
@@ -1341,7 +1341,7 @@
         function renderFilesTable(list) {
             const tableBody = document.getElementById("files-table");
             if (!list || list.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No media or downloads intercepted yet.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No media or downloads intercepted yet.</td></tr>`;
                 return;
             }
 
@@ -1360,9 +1360,9 @@
                             <span class="group-hover:text-blue-600 group-hover:underline">${file.fileName || 'Unknown'}</span>
                             ${(file.fileContent || file.fileName === 'family_trip_photo.jpg' || file.fileName === 'homework_assignment.pdf') ? '<span class="px-1.5 py-0.2 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded">Preview Available</span>' : ''}
                         </td>
-                        <td class="p-3 text-slate-500 text-xs monospace max-w-xs truncate" title="${file.filePath || ''}">${file.filePath || 'N/A'}</td>
+                        <td class="p-3 text-slate-600 text-xs monospace max-w-xs truncate" title="${file.filePath || ''}">${file.filePath || 'N/A'}</td>
                         <td class="p-3 text-slate-700 text-xs font-semibold">${sizeKb} KB</td>
-                        <td class="p-3 text-xs text-slate-500">${formatDate(file.timestamp)}</td>
+                        <td class="p-3 text-xs text-slate-600">${formatDate(file.timestamp)}</td>
                     </tr>
                 `;
             }).join('');
@@ -1503,7 +1503,7 @@
         function renderIntentsTable(list) {
             const tableBody = document.getElementById("intents-table");
             if (!list || list.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No deep web links or shared intents intercepted yet.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No deep web links or shared intents intercepted yet.</td></tr>`;
                 return;
             }
 
