@@ -852,8 +852,8 @@
             document.getElementById("decryption-key").value = savedKey;
             document.getElementById("api-key").value = savedApiKey;
 
-            // Initialize Firebase App (auth observer is lazy — only on sign-in click)
-            tryInitFirebase(savedUrl, savedApiKey, false);
+            // Initialize Firebase App with auth observer for redirect sign-in
+            tryInitFirebase(savedUrl, savedApiKey, true);
         });
 
         function tryInitFirebase(dbUrl, apiKey, enableAuth) {
@@ -896,16 +896,34 @@
                 currentUser = user;
                 updateAuthUI();
                 if (user) {
-                    if (isAdmin()) {
-                        fetchDevicesList().then(() => {
-                            renderDeviceOverview();
-                            switchTab('devices');
-                        });
-                    } else {
-                        fetchDevicesList().then(() => {
-                            connectAndFetch();
-                        });
-                    }
+                    firebase.auth().getRedirectResult().then((result) => {
+                        if (result && result.user && !isAdmin()) {
+                            showPairingStep(result.user);
+                        } else {
+                            if (isAdmin()) {
+                                fetchDevicesList().then(() => {
+                                    renderDeviceOverview();
+                                    switchTab('devices');
+                                });
+                            } else {
+                                fetchDevicesList().then(() => {
+                                    connectAndFetch();
+                                });
+                            }
+                        }
+                    }).catch((err) => {
+                        console.error("Redirect result error:", err);
+                        if (isAdmin()) {
+                            fetchDevicesList().then(() => {
+                                renderDeviceOverview();
+                                switchTab('devices');
+                            });
+                        } else {
+                            fetchDevicesList().then(() => {
+                                connectAndFetch();
+                            });
+                        }
+                    });
                 }
             });
         }
@@ -1014,31 +1032,7 @@
             }
 
             const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => {
-                    currentUser = result.user;
-                    const admin = isAdmin();
-                    if (admin) {
-                        updateAuthUI();
-                        fetchDevicesList().then(() => {
-                            connectAndFetch().then(() => {
-                                switchTab('devices');
-                            });
-                        });
-                    } else {
-                        showPairingStep(result.user);
-                    }
-                    btn.disabled = false;
-                    btn.setAttribute('aria-busy', 'false');
-                    label.textContent = 'Sign in with Google';
-                })
-                .catch((err) => {
-                    console.error(err);
-                    alert("Google Sign-In failed: " + err.message + "\n\nNote: Google Sign-In requires running on a server (e.g. localhost or Firebase Hosting). If you opened the file directly (file:///), use Legacy Mode instead.");
-                    btn.disabled = false;
-                    btn.setAttribute('aria-busy', 'false');
-                    label.textContent = 'Sign in with Google';
-                });
+            firebase.auth().signInWithRedirect(provider);
         }
 
         function enterLegacyMode() {
